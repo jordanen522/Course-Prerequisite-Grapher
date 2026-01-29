@@ -1,28 +1,47 @@
 void main() {
-    final String FILE_NAME = "courses01.csv";
-    // Create a HashMap using the loadCourses method.
-    Map<String, Course> courseMap = loadCourses(FILE_NAME);
+    Scanner scanner = new Scanner(System.in);
+    String fileName = "";
+    File targetFile = null;
 
-    if (courseMap.isEmpty()) {
-        throw new RuntimeException(FILE_NAME + " not found or empty.");
-    }
+    while (targetFile == null || !targetFile.exists() || !targetFile.isFile()) {
+        System.out.print("Enter File Name: ");
+        fileName = scanner.nextLine();
+        targetFile = new File(fileName);
 
-    /*
-      Used to check is DAG is valid.
-     */
-    Set<Course> visited = new HashSet<>();
-    Set<Course> stack = new HashSet<>();
-
-    // Check to make sure the data follows the DAG.
-    for (Course current : courseMap.values()) {
-        if (checkCycle(current, visited, stack)) {
-            throw new RuntimeException("Data is not a DAG.");
+        if (!targetFile.exists()) {
+            System.out.println("Error: File does not exist.\n");
+        } else if (!targetFile.isFile()) {
+            System.out.println("Error: Not a file.\n");
         }
     }
 
-    // 4. Generate output only if valid
-    saveMermaidDiagram(courseMap);
-    System.out.println("Success: Valid DAG detected and Mermaid code saved to graph.txt.");
+    // Create a HashMap using the loadCourses method.
+    Map<String, Course> courseMap = loadCourses(fileName);
+
+    try {
+        if (courseMap.isEmpty()) {
+            throw new RuntimeException(fileName + " not found or empty.");
+        }
+
+        /*
+        Used to check is DAG is valid.
+        */
+        Set<Course> visited = new HashSet<>();
+        Set<Course> stack = new HashSet<>();
+
+        // Check to make sure the data follows the DAG.
+        for (Course current : courseMap.values()) {
+            if (checkCycle(current, visited, stack)) {
+                throw new RuntimeException("Data is not a DAG.");
+            }
+        }
+
+        // 4. Generate output only if valid
+        saveMermaidDiagram(courseMap);
+        System.out.println("Success: Valid DAG detected and Mermaid code saved to graph.txt.");
+    } catch (RuntimeException e) {
+        System.out.println("Validation Error: " + e.getMessage());
+    }
 }
 
 /**
@@ -100,7 +119,7 @@ private Map<String, Course> loadCourses(final String theFileName) {
  * Saves the course map as a Mermaid-compatible graph.
  */
 public void saveMermaidDiagram(Map<String, Course> theCourseMap) {
-    try (PrintWriter writer = new PrintWriter(new File("graph.txt"))) {
+    try (PrintWriter writer = new PrintWriter("graph.txt")) {
         writer.println("---");
         writer.println("title: Course Prerequisite Model using DAG"); // Mermaid title
         writer.println("---");

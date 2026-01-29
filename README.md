@@ -1,9 +1,30 @@
 # Course Prerequisite Grapher
 
-This Java tool analyzes course structures and generates a visual **Directed Acyclic Graph (DAG)** of prerequisites.
+A Java-based automation tool that parses academic course data and transforms it into a Directed Acyclic Graph (DAG). 
+It dynamically generates visual flowcharts using Mermaid.js syntax to help students and advisors visualize complex degree paths.
 
-## How to View the Graph
-Copy the output from `graph.txt` and paste it into a Mermaid live editor, or view the render below:
+## 🚀 Usage
+
+### 1. Prepare your Data
+The program processes data from CSV files. Ensure your files follow this format:
+`Prerequisite,Course`
+
+*Example:*
+`TMATH 124,TMATH 125`
+`TMATH 125,TMATH 208`
+
+### 2. Run the Program
+1. Open the project in IntelliJ IDEA.
+2. Run `Main.java`.
+3. When prompted in the console, type the name of your CSV file and press Enter.
+
+### 3. View the Output
+A file named `graph.txt` will be generated containing the **Mermaid** syntax. 
+Copy the contents of `graph.txt` into the [Mermaid Live Editor](https://mermaid.live/) to see the visual graph!
+* 
+
+## Example Output
+Below is a visualization of the current prerequisite model for the CSS Major:
 
 ```mermaid
 ---
