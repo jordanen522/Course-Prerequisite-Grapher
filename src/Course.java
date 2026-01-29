@@ -19,7 +19,7 @@ public class Course {
     }
 
     public List<Course> getNextCourses() {
-        return myNextCourses;
+        return new ArrayList<>(myNextCourses);
     }
 
     @Override

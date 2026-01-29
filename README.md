@@ -9,27 +9,31 @@ It dynamically generates visual flowcharts using Mermaid.js syntax to help stude
 The program processes data from CSV files. Ensure your files follow this format:
 
 *Example:*
-Prereq,Course
+```text
+Prerequisite,Course
 TMATH 124,TMATH 125
 TMATH 125,TMATH 208
+TCSS 142,TCSS 143
+```
 
 ### 2. Run the Program
 1. Open the project in IntelliJ IDEA.
 2. Place your CSV file in the root directory of the project. 
-3. Run Main.java.
+3. Run `Main.java`.
 4. When prompted in the console, type the name of your CSV file and press Enter.
 
 **Project Structure Example:**
+```text
 CourseGrapher/
 ├── src/
 ├── your_file.csv  <-- (Place files here!)
 ├── graph.txt
 └── README.md
+```
 
 ### 3. View the Output
 A file named `graph.txt` will be generated containing the **Mermaid** syntax. 
 Copy the contents of `graph.txt` into the [Mermaid Live Editor](https://mermaid.live/) to see the visual graph!
-* 
 
 ## Example Output
 Below is a visualization of the current prerequisite model for the CSS Major:
