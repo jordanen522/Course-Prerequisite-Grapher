@@ -1,7 +1,13 @@
 # Course Prerequisite Grapher
 
-A Java-based automation tool that parses academic course data and transforms it into a Directed Acyclic Graph (DAG). 
-It dynamically generates visual flowcharts using Mermaid.js syntax to help students and advisors visualize complex degree paths.
+A Java-based utility that parses course data to generate visual Directed Acyclic Graphs (DAGs) using Mermaid.js.
+It dynamically generates visual flowcharts to help students and advisors visualize complex degree paths.
+
+## Features
+- **Cycle Detection:** Automatically identifies and prevents circular prerequisites.
+- **Dynamic Styling:** Automatically colors nodes by course prefix.
+- **Major Identification:** Applies distinct styling to "Major" requirement nodes.
+- **In-Memory Validation:** High-speed graph validation logic.
 
 ## Usage
 
