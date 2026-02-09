@@ -15,20 +15,18 @@ import java.util.HashSet;
  */
 public class Main {
     public static void main(String[] theArgs) {
-        try (Scanner scanner = new Scanner(System.in)) {
+        try (Scanner consoleScanner = new Scanner(System.in)) {
 
-            String fileName = validateUserInput(scanner);
+            String fileName = validateUserInput(consoleScanner);
+
             Map<String, Course> courseMap = loadCourses(fileName);
+            validGraphStructure(courseMap, fileName);
+            saveMermaidDiagram(courseMap);
 
-            try {
-                validGraphStructure(courseMap, fileName);
-                saveMermaidDiagram(courseMap);
-                System.out.println("Success: Valid DAG detected and Mermaid code saved to graph.txt.");
-            } catch (RuntimeException e) {
-                System.out.println("Validation Error: " + e.getMessage());
-            }
-        } catch (RuntimeException e) {
-            System.out.println("Validation Error: " + e.getMessage());
+            System.out.println("Success: Valid DAG detected and Mermaid code saved to graph.txt.");
+
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
         }
     }
 
@@ -61,17 +59,18 @@ public class Main {
      *
      * @param theFileName the name of the file to be parsed.
      * @return a map with course names and Course objects.
+     * @throws Exception if the file is missing.
      */
-    public static Map<String, Course> loadCourses(final String theFileName) {
+    public static Map<String, Course> loadCourses(final String theFileName) throws Exception{
         Map<String, Course> map = new HashMap<>();
 
-        try (Scanner sc = new Scanner(new File(theFileName))) {
+        try (Scanner fileScanner = new Scanner(new File(theFileName))) {
             // Skip the header row
-            if (sc.hasNextLine()) {
-                sc.nextLine();
+            if (fileScanner.hasNextLine()) {
+                fileScanner.nextLine();
             }
-            while (sc.hasNextLine()) {
-                String line = sc.nextLine();
+            while (fileScanner.hasNextLine()) {
+                String line = fileScanner.nextLine();
 
                 if (!line.trim().isEmpty()) {
                     String[] parts = line.split(",");
@@ -89,8 +88,6 @@ public class Main {
                     }
                 }
             }
-        } catch (Exception e) {
-            System.out.println("File Error: " + e.getMessage());
         }
         return map;
     }
@@ -149,8 +146,9 @@ public class Main {
      * Converts the hashMap data into Mermaid syntax and saves it into a text file.
      *
      * @param theCourseMap the map containing the course hierarchy to be visualized.
+     * @throws IOException if the file can not be written.
      */
-    public static void saveMermaidDiagram(Map<String, Course> theCourseMap) {
+    public static void saveMermaidDiagram(Map<String, Course> theCourseMap) throws IOException {
         try (PrintWriter writer = new PrintWriter("graph.txt")) {
             writer.println("---");
             writer.println("title: Course Prerequisite Model using DAG"); // Mermaid title
@@ -199,8 +197,6 @@ public class Main {
                     writer.println("    class " + name.replace(" ", "_") + " majorNode");
                 }
             }
-        } catch (IOException e) {
-            System.out.println("Error saving file: " + e.getMessage());
         }
     }
 }
