@@ -1,3 +1,9 @@
+/*
+ * Main.java
+ *
+ * Personal Project - Spring 2026
+ * CoursePrequisiteModel
+ */
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;

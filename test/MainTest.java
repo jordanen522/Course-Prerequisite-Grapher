@@ -1,3 +1,9 @@
+/*
+ * MainTest.java
+ *
+ * Personal Project - Spring 2026
+ * CoursePrequisiteModel
+ */
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.HashMap;
