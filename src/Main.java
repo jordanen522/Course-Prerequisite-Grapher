@@ -74,13 +74,22 @@ public class Main {
         }
 
         // Proceed if the file is valid.
+        String title = readTitle(userFileName);
         Map<String, Course> courseMap = loadCourses(userFileName);
         validGraphStructure(courseMap, userFileName);
-        saveMermaidDiagram(courseMap);
+        saveMermaidDiagram(courseMap, title);
 
         System.out.println("Success: Valid DAG detected and Mermaid code saved to " + OUTPUT_FILE + ".");
     }
 
+    public static String readTitle(String theUserFileName) throws Exception {
+        try (Scanner fileScanner = new Scanner(new File(theUserFileName))) {
+            if (fileScanner.hasNextLine()) {
+                return fileScanner.nextLine();
+            }
+        }
+        return "Course Prerequisite Model using DAG";
+    }
     /**
      * Parses a CSV file into a map of fully constructed, immutable Course objects.
      *
@@ -216,10 +225,10 @@ public class Main {
      * @param theCourseMap the map of course names to course objects.
      * @throws IOException if the output file cannot be written.
      */
-    public static void saveMermaidDiagram(Map<String, Course> theCourseMap) throws IOException {
+    public static void saveMermaidDiagram(Map<String, Course> theCourseMap, String theTitle) throws IOException {
         try (PrintWriter writer = new PrintWriter(OUTPUT_FILE)) {
             writer.println("---");
-            writer.println("title: Course Prerequisite Model using DAG"); // Mermaid title
+            writer.println("title: " + theTitle); // Mermaid title
             writer.println("---");
             writer.println("graph TD"); // Top-down graph instead of left-right (Just replace TD with LR)
 
