@@ -2,49 +2,20 @@
 title: Course Prerequisite Model using DAG
 ---
 graph TD
-    ECON_202["ECON 202"] --> Business_Major["Business Major"]
-    ECON_201["ECON 201"] --> Business_Major["Business Major"]
-    Business_Major["Business Major"] --> ACCT_210["ACCT 210"]
-    Business_Major["Business Major"] --> MGMT_300["MGMT 300"]
-    Business_Major["Business Major"] --> MKTG_301["MKTG 301"]
-    Math_Placement["Math Placement"] --> MATH_111["MATH 111"]
-    ACCT_220["ACCT 220"] --> ACCT_310["ACCT 310"]
-    ACCT_310["ACCT 310"] --> Senior_Capstone["Senior Capstone"]
-    MATH_111["MATH 111"] --> Business_Major["Business Major"]
-    ACCT_210["ACCT 210"] --> ACCT_220["ACCT 220"]
-    MKTG_301["MKTG 301"] --> MKTG_411["MKTG 411"]
-    MKTG_301["MKTG 301"] --> MKTG_450["MKTG 450"]
-    MGMT_450["MGMT 450"] --> Senior_Capstone["Senior Capstone"]
-    MKTG_411["MKTG 411"] --> Senior_Capstone["Senior Capstone"]
-    None["None"] --> ECON_201["ECON 201"]
-    None["None"] --> ECON_202["ECON 202"]
-    MGMT_300["MGMT 300"] --> MGMT_450["MGMT 450"]
-    MGMT_300["MGMT 300"] --> MGMT_470["MGMT 470"]
+    5_Credits_Approved_design_elective["5 Credits Approved design elective"] --> Senior_Electives_Complete["Senior Electives Complete"]
+    5_More_Credits_of_300-_or_400-level_TCSS_elective["5 More Credits of 300- or 400-level TCSS elective"] --> Senior_Electives_Complete["Senior Electives Complete"]
+    5_Credits_of_400-level_TCSS_elective["5 Credits of 400-level TCSS elective"] --> 5_More_Credits_of_400-level_TCSS_elective["5 More Credits of 400-level TCSS elective"]
+    5_Credits_of_300-_or_400-level_TCSS_elective["5 Credits of 300- or 400-level TCSS elective"] --> 5_More_Credits_of_300-_or_400-level_TCSS_elective["5 More Credits of 300- or 400-level TCSS elective"]
+    5_More_Credits_of_400-level_TCSS_elective["5 More Credits of 400-level TCSS elective"] --> Senior_Electives_Complete["Senior Electives Complete"]
 
     %% Dynamic Styling
-    classDef styleMGMT fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
-    class MGMT_470 styleMGMT
-    classDef styleECON fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
-    class ECON_202 styleECON
-    class ECON_201 styleECON
-    classDef styleBusiness fill:#fff3e0,stroke:#e65100,stroke-width:2px;
-    class Business_Major styleBusiness
-    classDef styleMath fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
-    class Math_Placement styleMath
-    classDef styleSenior fill:#f1f8e9,stroke:#558b2f,stroke-width:2px;
-    class Senior_Capstone styleSenior
-    classDef styleACCT fill:#fffde7,stroke:#fbc02d,stroke-width:2px;
-    class ACCT_220 styleACCT
-    class ACCT_310 styleACCT
-    classDef styleMATH fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
-    class MATH_111 styleMATH
-    class ACCT_210 styleACCT
-    classDef styleMKTG fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
-    class MKTG_301 styleMKTG
-    class MGMT_450 styleMGMT
-    class MKTG_411 styleMKTG
-    class MKTG_450 styleMKTG
-    class MGMT_300 styleMGMT
+    classDef style5 fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    class 5_Credits_Approved_design_elective style5
+    class 5_More_Credits_of_300-_or_400-level_TCSS_elective style5
+    classDef styleSenior fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    class Senior_Electives_Complete styleSenior
+    class 5_Credits_of_400-level_TCSS_elective style5
+    class 5_Credits_of_300-_or_400-level_TCSS_elective style5
+    class 5_More_Credits_of_400-level_TCSS_elective style5
 
     classDef majorNode fill:#fff,stroke:#333,stroke-width:4px,stroke-dasharray: 5 5;
-    class Business_Major majorNode
