@@ -1,0 +1,34 @@
+---
+title: Admission Requirements BSCSS
+---
+graph TD
+    TMATH_125["TMATH 125"] --> CSS_Major["CSS Major"]
+    TMATH_115["TMATH 115"] --> TMATH_116["TMATH 116"]
+    TMATH_116["TMATH 116"] --> TMATH_124["TMATH 124"]
+    TMATH_116["TMATH 116"] --> TCSS_142["TCSS 142"]
+    TCSS_143["TCSS 143"] --> CSS_Major["CSS Major"]
+    TCSS_142["TCSS 142"] --> TCSS_143["TCSS 143"]
+    TCSS_142["TCSS 142"] --> CSS_Major["CSS Major"]
+    High_School_Math_Placement["High School Math Placement"] --> TMATH_115["TMATH 115"]
+    Lab_Based_Science_Except_Astronomy["Lab Based Science Except Astronomy"] --> CSS_Major["CSS Major"]
+    TMATH_124["TMATH 124"] --> TMATH_125["TMATH 125"]
+    TMATH_124["TMATH 124"] --> CSS_Major["CSS Major"]
+
+    %% Dynamic Styling
+    classDef styleTMATH fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    class TMATH_125 styleTMATH
+    class TMATH_115 styleTMATH
+    class TMATH_116 styleTMATH
+    classDef styleTCSS fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    class TCSS_143 styleTCSS
+    classDef styleCSS fill:#fff3e0,stroke:#e65100,stroke-width:2px;
+    class CSS_Major styleCSS
+    class TCSS_142 styleTCSS
+    classDef styleHigh fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
+    class High_School_Math_Placement styleHigh
+    classDef styleLab fill:#f1f8e9,stroke:#558b2f,stroke-width:2px;
+    class Lab_Based_Science_Except_Astronomy styleLab
+    class TMATH_124 styleTMATH
+
+    classDef majorNode fill:#fff,stroke:#333,stroke-width:4px,stroke-dasharray: 5 5;
+    class CSS_Major majorNode

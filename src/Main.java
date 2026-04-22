@@ -16,7 +16,7 @@ import java.util.Set;
 /**
  * Entry point for the Course Prerequisite Grapher.
  * Reads a CSV file of course prerequisite relations, validates that data forms a Directed Acyclic Graph (DAG),
- * and saves a Mermaid diagram to graph.txt for visualization.
+ * and saves a Mermaid diagram to OutputGraph.txt for visualization.
  *
  * @author Jordan Eng
  * @version 4/20/2026
@@ -26,7 +26,7 @@ public final class Main {
     /**
      * Output file name for the generated Mermaid diagram.
      */
-    private static final String OUTPUT_FILE = "graph.txt";
+    private static final String OUTPUT_FILE = "OutputGraph.txt";
     /**
      * Color palette from Google's Material Design System, used for node styling.
      */
