@@ -37,7 +37,7 @@ public final class Main {
     private static final String[] STROKES = {"#01579b", "#2e7d32", "#e65100", "#7b1fa2", "#558b2f", "#fbc02d"};
 
     /**
-     * Private constructor to prevent accidental intialization.
+     * Private constructor to prevent accidental initialization.
      */
     private Main() {
         super();
@@ -82,7 +82,7 @@ public final class Main {
 
         // Proceed if the file is valid.
         final String title = readTitle(userFileName);
-        final Map<String, Course> courseMap = loadCourses(userFileName);
+        final Map<String, CourseInterface> courseMap = loadCourses(userFileName);
         validGraphStructure(courseMap, userFileName);
         saveMermaidDiagram(courseMap, title);
 
@@ -106,13 +106,13 @@ public final class Main {
         return "Course Prerequisite Model using DAG";
     }
     /**
-     * Parses a CSV file into a map of fully constructed, immutable Course objects.
+     * Parses a CSV file into a map of fully constructed, immutable CourseInterface objects.
      *
      * @param theFileName the path of the CSV file to be parsed; must nto be null.
-     * @return a map of course names to Course objects.
+     * @return a map of course names to CourseInterface objects.
      * @throws Exception if the file cannot be read.
      */
-    public static Map<String, Course> loadCourses(final String theFileName) throws Exception {
+    public static Map<String, CourseInterface> loadCourses(final String theFileName) throws Exception {
         final Map<String, Set<String>> courseObjectDataMap = new HashMap<>();
 
         try (final Scanner fileScanner = new Scanner(new File(theFileName))) {
@@ -146,7 +146,7 @@ public final class Main {
             }
         }
 
-        final Map<String, Course> resultCourseMap = new HashMap<>();
+        final Map<String, CourseInterface> resultCourseMap = new HashMap<>();
         final Set<String> stack = new HashSet<>();
         /*
          * keySet returns a set of all keys.
@@ -160,18 +160,18 @@ public final class Main {
 
     // Return statement is only used in recursive calls.
     /**
-     * Recursively constructs a Course object and all of its successors.
-     * Direct successor sets are built before constructing the Course object
+     * Recursively constructs a CourseInterface object and all of its successors.
+     * Direct successor sets are built before constructing the CourseInterface object
      * to prevent mutability.
      *
      * @param theCourseName the name of the course being built; must not be null.
      * @param theCourseObjectDataMap the string data of course objects to be built.
      * @param theResultCourseMap the map of constructed courses.
-     * @return the fully constructed Course.
+     * @return the fully constructed CourseInterface.
      */
-    private static Course buildCourse(final String theCourseName,
+    private static CourseInterface buildCourse(final String theCourseName,
                                       final Map<String, Set<String>> theCourseObjectDataMap,
-                                      final Map<String, Course> theResultCourseMap,
+                                      final Map<String, CourseInterface> theResultCourseMap,
                                       final Set<String> theStack) {
 
         // If it's in the map return we are done.
@@ -190,7 +190,7 @@ public final class Main {
          * For each String successor in the String successor set, build the Course object and add it to the
          * Course Successor set for this object.
          */
-        final Set<Course> successors = new HashSet<>();
+        final Set<CourseInterface> successors = new HashSet<>();
         for (final String successorName : theCourseObjectDataMap.get(theCourseName)) {
             if (successorName.equals(theCourseName)) {
                 throw new IllegalArgumentException("Self-loop detected: " + theCourseName
@@ -201,7 +201,7 @@ public final class Main {
         theStack.remove(theCourseName);
 
         // Create the new Course after you have made the Course object set of all successors.
-        final Course course = new Course(theCourseName, successors);
+        final CourseInterface course = new Course(theCourseName, successors);
         theResultCourseMap.put(theCourseName, course);
 
         return course;
@@ -211,18 +211,20 @@ public final class Main {
      * Validates that the course data forms a Directed Acyclic Graph (DAG).
      * Uses Depth-First Search across all nodes to detect any cycles.
      *
-     * @param theCourseMap the map of course names to Course objects.
+     * @param theCourseMap the map of course names to CourseInterface objects.
      * @param theFileName the name of the source file, used for error messages.
      * @throws RuntimeException if the map is empty or a cycle is found.
      */
-    public static void validGraphStructure(final Map<String, Course> theCourseMap, final String theFileName) {
+    public static void validGraphStructure(final Map<String, CourseInterface> theCourseMap,
+                                           final String theFileName) {
+
         if (theCourseMap.isEmpty()) {
             throw new RuntimeException(theFileName + " not found or empty.");
         }
-        final Set<Course> visited = new HashSet<>();
-        final Set<Course> stack = new HashSet<>();
+        final Set<CourseInterface> visited = new HashSet<>();
+        final Set<CourseInterface> stack = new HashSet<>();
 
-        for (final Course current : theCourseMap.values()) {
+        for (final CourseInterface current : theCourseMap.values()) {
             if (checkCycle(current, visited, stack)) {
                 throw new RuntimeException("Data is not a DAG.");
             }
@@ -237,9 +239,9 @@ public final class Main {
      * @param theStack the set of courses in current path.
      * @return true if a cycle is detected; false otherwise.
      */
-    public static boolean checkCycle(final Course theCurrent,
-                                     final Set<Course> theVisited,
-                                     final Set<Course> theStack) {
+    public static boolean checkCycle(final CourseInterface theCurrent,
+                                     final Set<CourseInterface> theVisited,
+                                     final Set<CourseInterface> theStack) {
 
         if (theStack.contains(theCurrent)) {
             return true; // Found a loop because we have seen this course already this search.
@@ -254,7 +256,7 @@ public final class Main {
         /*
          * Check each successor in the set of successors.
          */
-        for (final Course next : theCurrent.getNextCourses()) {
+        for (final CourseInterface next : theCurrent.getNextCourses()) {
             if (checkCycle(next, theVisited, theStack)) {
                 return true;
             }
@@ -267,10 +269,10 @@ public final class Main {
     /**
      * Converts the course map data into Mermaid diagram syntax and saves it into a text file.
      *
-     * @param theCourseMap the map of course names to course objects.
+     * @param theCourseMap the map of course names to CourseInterface objects.
      * @throws IOException if the output file cannot be written.
      */
-    public static void saveMermaidDiagram(final Map<String, Course> theCourseMap,
+    public static void saveMermaidDiagram(final Map<String, CourseInterface> theCourseMap,
                                           final String theTitle) throws IOException {
 
         try (final PrintWriter writer = new PrintWriter(OUTPUT_FILE)) {
@@ -280,8 +282,8 @@ public final class Main {
             writer.println("graph TD"); // Top-down graph instead of left-right (Just replace TD with LR)
 
             // Print each course with successors.
-            for (final Course parent : theCourseMap.values()) {
-                for (final Course child : parent.getNextCourses()) {
+            for (final CourseInterface parent : theCourseMap.values()) {
+                for (final CourseInterface child : parent.getNextCourses()) {
                     final String pId = parent.getName().replace(" ", "_");
                     final String cId = child.getName().replace(" ", "_");
                     writer.println("    " + pId + "[\"" + parent.getName()

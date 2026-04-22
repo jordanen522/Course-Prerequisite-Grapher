@@ -4,7 +4,6 @@
  * Personal Project - Spring 2026
  * CoursePrequisiteGrapher
  */
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -15,7 +14,7 @@ import java.util.Set;
  * @author Jordan Eng
  * @version 4/20/2026
  */
-public class Course {
+public class Course implements CourseInterface {
 
     /**
      * The name of this course.
@@ -25,7 +24,7 @@ public class Course {
      * The immutable set of courses that have this course as a direct prerequisite.
      */
     // Set used to avoid duplicates.
-    private final Set<Course> myNextCourses;
+    private final Set<CourseInterface> myNextCourses;
 
     /**
      * Constructs a new Course with the given name and its complete set of direct successors.
@@ -34,7 +33,7 @@ public class Course {
      * @param theNextCourses a set of the courses that follow this one; must not be null.
      * @throws IllegalArgumentException if theName or theNextCourses is null.
      */
-    public Course(final String theName, final Set<Course> theNextCourses) {
+    public Course(final String theName, final Set<CourseInterface> theNextCourses) {
         super();
 
         if (theName == null) {
@@ -62,9 +61,9 @@ public class Course {
      *
      * @return a new Set containing the direct successors of this course.
      */
-    public Set<Course> getNextCourses() {
+    public Set<CourseInterface> getNextCourses() {
         // Returns a copy to preserve encapsulation.
-        return new HashSet<Course>(myNextCourses);
+        return new HashSet<CourseInterface>(myNextCourses);
     }
 
     /**
@@ -79,7 +78,7 @@ public class Course {
 
         // Iterate over the set and join with commas.
         int i = 0;
-        for (final Course course : myNextCourses) {
+        for (final CourseInterface course : myNextCourses) {
             sb.append(course.getName());
 
             // Append a comma after every element except the last.
