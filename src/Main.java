@@ -2,7 +2,7 @@
  * Main.java
  *
  * Personal Project - Spring 2026
- * CoursePrequisiteModel
+ * CoursePrequisiteGrapher
  */
 import java.io.File;
 import java.io.IOException;
@@ -98,7 +98,7 @@ public class Main {
      * @throws Exception if the file cannot be read.
      */
     public static Map<String, Course> loadCourses(final String theFileName) throws Exception {
-        Map<String, Set<String>> edges = new HashMap<>();
+        Map<String, Set<String>> courseObjectDataMap = new HashMap<>();
 
         try (Scanner fileScanner = new Scanner(new File(theFileName))) {
             // Skip the header row
@@ -117,50 +117,76 @@ public class Main {
                         String successorName = parts[1].trim();
 
                         // Creates a new objects if it does not exist in the map already.
-                        edges.putIfAbsent(courseName, new HashSet<>());
-                        edges.putIfAbsent(successorName, new HashSet<>());
+                        courseObjectDataMap.putIfAbsent(courseName, new HashSet<>());
+                        courseObjectDataMap.putIfAbsent(successorName, new HashSet<>());
 
-                        // Add the course to the list of classes after the prereq.
-                        edges.get(courseName).add(successorName);
+                        /*
+                         * Add the direct successor to the set of the course.
+                         * get(courseName) returns the HashSet value to the courseName key,
+                         * add(successorName) adds the successorName to the returned HashSet.
+                         */
+                        courseObjectDataMap.get(courseName).add(successorName);
                     }
                 }
             }
         }
 
-        Map<String, Course> memo = new HashMap<>();
-        for (String course : edges.keySet()) {
-            buildCourse(course, edges, memo);
+        Map<String, Course> resultCourseMap = new HashMap<>();
+        Set<String> stack = new HashSet<>();
+        /*
+         * keySet returns a set of all keys.
+         * For each key in the set of all keys.
+         */
+        for (String courseObjectData : courseObjectDataMap.keySet()) {
+            buildCourse(courseObjectData, courseObjectDataMap, resultCourseMap, stack);
         }
-        return memo;
+        return resultCourseMap;
     }
 
+    // Return statement is only used in recursive calls.
     /**
      * Recursively constructs a Course object and all of its successors.
      * Direct successor sets are built before constructing the Course object
      * to prevent mutability.
      *
-     * @param theName the name of the course being built; must not be null.
-     * @param theEdges the string data of course objects to be built.
-     * @param theMemo the map of constructed courses.
+     * @param theCourseName the name of the course being built; must not be null.
+     * @param theCourseObjectDataMap the string data of course objects to be built.
+     * @param theResultCourseMap the map of constructed courses.
      * @return the fully constructed Course.
      */
-    private static Course buildCourse(final String theName,
-                                      final Map<String, Set<String>> theEdges,
-                                      final Map<String, Course> theMemo) {
+    private static Course buildCourse(final String theCourseName,
+                                      final Map<String, Set<String>> theCourseObjectDataMap,
+                                      final Map<String, Course> theResultCourseMap,
+                                      final Set<String> theStack) {
 
-        if (theMemo.containsKey(theName)) {
-            return theMemo.get(theName);
+        // If it's in the map return we are done.
+        if (theResultCourseMap.containsKey(theCourseName)) {
+            return theResultCourseMap.get(theCourseName);
         }
+        if (theStack.contains(theCourseName)) {
+            throw new IllegalArgumentException("Cycle detected in CSV data: " + theCourseName);
+        }
+        theStack.add(theCourseName);
+
         /*
-         * Recursively build each successor Course before building this one.
+         * If not in the map recursively build each successor Course before building this one.
          * Each course object after this node needs to be created to add it to this node.
+         *
+         * For each String successor in the String successor set, build the Course object and add it to the
+         * Course Successor set for this object.
          */
         Set<Course> successors = new HashSet<>();
-        for (String successorName : theEdges.get(theName)) {
-            successors.add(buildCourse(successorName, theEdges, theMemo));
+        for (String successorName : theCourseObjectDataMap.get(theCourseName)) {
+            if (successorName.equals(theCourseName)) {
+                throw new IllegalArgumentException("Self-loop detected: " + theCourseName + " cannot be its own prerequisite.");
+            }
+            successors.add(buildCourse(successorName, theCourseObjectDataMap, theResultCourseMap, theStack));
         }
-        Course course = new Course (theName, successors);
-        theMemo.put(theName, course);
+        theStack.remove(theCourseName);
+
+        // Create the new Course after you have made the Course object set of all successors.
+        Course course = new Course (theCourseName, successors);
+        theResultCourseMap.put(theCourseName, course);
 
         return course;
     }
@@ -207,7 +233,7 @@ public class Main {
         theStack.add(theCurrent);
 
         /*
-         * Checks the courses after are safe.
+         * Check each successor in the set of successors.
          */
         for (Course next : theCurrent.getNextCourses()) {
             if (checkCycle(next, theVisited, theStack)) {

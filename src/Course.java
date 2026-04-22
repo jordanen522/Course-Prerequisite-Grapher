@@ -2,7 +2,7 @@
  * Course.java
  *
  * Personal Project - Spring 2026
- * CoursePrequisiteModel
+ * CoursePrequisiteGrapher
  */
 
 
