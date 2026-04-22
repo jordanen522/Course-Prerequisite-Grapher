@@ -5,7 +5,6 @@
  * CoursePrequisiteGrapher
  */
 
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -35,7 +34,9 @@ public class Course {
      * @param theNextCourses a set of the courses that follow this one; must not be null.
      * @throws IllegalArgumentException if theName or theNextCourses is null.
      */
-    public Course(String theName, Set<Course> theNextCourses) {
+    public Course(final String theName, final Set<Course> theNextCourses) {
+        super();
+
         if (theName == null) {
             throw new IllegalArgumentException("Course name must not be null.");
         }
@@ -63,7 +64,7 @@ public class Course {
      */
     public Set<Course> getNextCourses() {
         // Returns a copy to preserve encapsulation.
-        return new HashSet<>(myNextCourses);
+        return new HashSet<Course>(myNextCourses);
     }
 
     /**
@@ -73,12 +74,12 @@ public class Course {
      */
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append(myName).append(" -> [");
 
         // Iterate over the set and join with commas.
         int i = 0;
-        for (Course course : myNextCourses) {
+        for (final Course course : myNextCourses) {
             sb.append(course.getName());
 
             // Append a comma after every element except the last.
@@ -100,7 +101,7 @@ public class Course {
      * @return true if theObj is a course with the same name and successors; false otherwise.
      */
     @Override
-    public boolean equals(Object theObj) {
+    public boolean equals(final Object theObj) {
         if (this == theObj) {
             return true;
         }
@@ -109,7 +110,7 @@ public class Course {
         }
         final Course other = (Course) theObj;
         return java.util.Objects.equals(myName, other.myName)
-               && java.util.Objects.equals(myNextCourses, other.myNextCourses);
+                && java.util.Objects.equals(myNextCourses, other.myNextCourses);
     }
 
     /**

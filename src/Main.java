@@ -8,10 +8,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.HashSet;
 
 /**
  * Entry point for the Course Prerequisite Grapher.
@@ -21,7 +21,7 @@ import java.util.HashSet;
  * @author Jordan Eng
  * @version 4/20/2026
  */
-public class Main {
+public final class Main {
 
     /**
      * Output file name for the generated Mermaid diagram.
@@ -37,15 +37,22 @@ public class Main {
     private static final String[] STROKES = {"#01579b", "#2e7d32", "#e65100", "#7b1fa2", "#558b2f", "#fbc02d"};
 
     /**
+     * Private constructor to prevent accidental intialization.
+     */
+    private Main() {
+        super();
+    }
+
+    /**
      * Entry point of the program; Starts file validation, course loading,
      * DAG validation, and Mermaid diagram generation.
      *
      * @param theArgs command-line arguments (not used).
      */
-    public static void main(String[] theArgs) {
-        try (Scanner consoleScanner = new Scanner(System.in)) {
+    public static void main(final String[] theArgs) {
+        try (final Scanner consoleScanner = new Scanner(System.in)) {
             validateUserInput(consoleScanner);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             System.err.println("Error: " + e.getMessage());
         }
     }
@@ -56,7 +63,7 @@ public class Main {
      * @param theScanner the scanner used to read keyboard input.
      * @throws Exception if loading, validation, or file writing fails.
      */
-    public static void validateUserInput(Scanner theScanner) throws Exception {
+    public static void validateUserInput(final Scanner theScanner) throws Exception {
         File targetFile = null;
         String userFileName = "";
 
@@ -74,16 +81,24 @@ public class Main {
         }
 
         // Proceed if the file is valid.
-        String title = readTitle(userFileName);
-        Map<String, Course> courseMap = loadCourses(userFileName);
+        final String title = readTitle(userFileName);
+        final Map<String, Course> courseMap = loadCourses(userFileName);
         validGraphStructure(courseMap, userFileName);
         saveMermaidDiagram(courseMap, title);
 
         System.out.println("Success: Valid DAG detected and Mermaid code saved to " + OUTPUT_FILE + ".");
     }
 
-    public static String readTitle(String theUserFileName) throws Exception {
-        try (Scanner fileScanner = new Scanner(new File(theUserFileName))) {
+    /**
+     * Reads the first line of the CSV file to find the title used for the
+     * Mermaid diagram, if empty return a default title.
+     *
+     * @param theUserFileName the name of the users file.
+     * @return the first line of the file as a string or a default file name.
+     * @throws Exception if the file cannot be read.
+     */
+    public static String readTitle(final String theUserFileName) throws Exception {
+        try (final Scanner fileScanner = new Scanner(new File(theUserFileName))) {
             if (fileScanner.hasNextLine()) {
                 return fileScanner.nextLine();
             }
@@ -98,23 +113,23 @@ public class Main {
      * @throws Exception if the file cannot be read.
      */
     public static Map<String, Course> loadCourses(final String theFileName) throws Exception {
-        Map<String, Set<String>> courseObjectDataMap = new HashMap<>();
+        final Map<String, Set<String>> courseObjectDataMap = new HashMap<>();
 
-        try (Scanner fileScanner = new Scanner(new File(theFileName))) {
+        try (final Scanner fileScanner = new Scanner(new File(theFileName))) {
             // Skip the header row
             if (fileScanner.hasNextLine()) {
                 fileScanner.nextLine();
             }
             while (fileScanner.hasNextLine()) {
-                String line = fileScanner.nextLine();
+                final String line = fileScanner.nextLine();
 
                 if (!line.trim().isEmpty()) {
-                    String[] parts = line.split(",");
+                    final String[] parts = line.split(",");
 
                     // Skip malformed rows.
                     if (parts.length >= 2) {
-                        String courseName = parts[0].trim();
-                        String successorName = parts[1].trim();
+                        final String courseName = parts[0].trim();
+                        final String successorName = parts[1].trim();
 
                         // Creates a new objects if it does not exist in the map already.
                         courseObjectDataMap.putIfAbsent(courseName, new HashSet<>());
@@ -131,13 +146,13 @@ public class Main {
             }
         }
 
-        Map<String, Course> resultCourseMap = new HashMap<>();
-        Set<String> stack = new HashSet<>();
+        final Map<String, Course> resultCourseMap = new HashMap<>();
+        final Set<String> stack = new HashSet<>();
         /*
          * keySet returns a set of all keys.
          * For each key in the set of all keys.
          */
-        for (String courseObjectData : courseObjectDataMap.keySet()) {
+        for (final String courseObjectData : courseObjectDataMap.keySet()) {
             buildCourse(courseObjectData, courseObjectDataMap, resultCourseMap, stack);
         }
         return resultCourseMap;
@@ -175,17 +190,18 @@ public class Main {
          * For each String successor in the String successor set, build the Course object and add it to the
          * Course Successor set for this object.
          */
-        Set<Course> successors = new HashSet<>();
-        for (String successorName : theCourseObjectDataMap.get(theCourseName)) {
+        final Set<Course> successors = new HashSet<>();
+        for (final String successorName : theCourseObjectDataMap.get(theCourseName)) {
             if (successorName.equals(theCourseName)) {
-                throw new IllegalArgumentException("Self-loop detected: " + theCourseName + " cannot be its own prerequisite.");
+                throw new IllegalArgumentException("Self-loop detected: " + theCourseName
+                        + " cannot be its own prerequisite.");
             }
             successors.add(buildCourse(successorName, theCourseObjectDataMap, theResultCourseMap, theStack));
         }
         theStack.remove(theCourseName);
 
         // Create the new Course after you have made the Course object set of all successors.
-        Course course = new Course (theCourseName, successors);
+        final Course course = new Course(theCourseName, successors);
         theResultCourseMap.put(theCourseName, course);
 
         return course;
@@ -203,10 +219,10 @@ public class Main {
         if (theCourseMap.isEmpty()) {
             throw new RuntimeException(theFileName + " not found or empty.");
         }
-        Set<Course> visited = new HashSet<>();
-        Set<Course> stack = new HashSet<>();
+        final Set<Course> visited = new HashSet<>();
+        final Set<Course> stack = new HashSet<>();
 
-        for (Course current : theCourseMap.values()) {
+        for (final Course current : theCourseMap.values()) {
             if (checkCycle(current, visited, stack)) {
                 throw new RuntimeException("Data is not a DAG.");
             }
@@ -221,7 +237,10 @@ public class Main {
      * @param theStack the set of courses in current path.
      * @return true if a cycle is detected; false otherwise.
      */
-    public static boolean checkCycle(Course theCurrent, Set<Course> theVisited, Set<Course> theStack) {
+    public static boolean checkCycle(final Course theCurrent,
+                                     final Set<Course> theVisited,
+                                     final Set<Course> theStack) {
+
         if (theStack.contains(theCurrent)) {
             return true; // Found a loop because we have seen this course already this search.
         }
@@ -235,7 +254,7 @@ public class Main {
         /*
          * Check each successor in the set of successors.
          */
-        for (Course next : theCurrent.getNextCourses()) {
+        for (final Course next : theCurrent.getNextCourses()) {
             if (checkCycle(next, theVisited, theStack)) {
                 return true;
             }
@@ -251,35 +270,37 @@ public class Main {
      * @param theCourseMap the map of course names to course objects.
      * @throws IOException if the output file cannot be written.
      */
-    public static void saveMermaidDiagram(Map<String, Course> theCourseMap, String theTitle) throws IOException {
-        try (PrintWriter writer = new PrintWriter(OUTPUT_FILE)) {
+    public static void saveMermaidDiagram(final Map<String, Course> theCourseMap,
+                                          final String theTitle) throws IOException {
+
+        try (final PrintWriter writer = new PrintWriter(OUTPUT_FILE)) {
             writer.println("---");
             writer.println("title: " + theTitle); // Mermaid title
             writer.println("---");
             writer.println("graph TD"); // Top-down graph instead of left-right (Just replace TD with LR)
 
             // Print each course with successors.
-            for (Course parent : theCourseMap.values()) {
-                for (Course child : parent.getNextCourses()) {
-                    String pId = parent.getName().replace(" ", "_");
-                    String cId = child.getName().replace(" ", "_");
-                    writer.println("    " + pId + "[\"" + parent.getName() + "\"] --> " +
-                                   cId + "[\"" + child.getName() + "\"]");
+            for (final Course parent : theCourseMap.values()) {
+                for (final Course child : parent.getNextCourses()) {
+                    final String pId = parent.getName().replace(" ", "_");
+                    final String cId = child.getName().replace(" ", "_");
+                    writer.println("    " + pId + "[\"" + parent.getName()
+                            + "\"] --> " + cId + "[\"" + child.getName() + "\"]");
                 }
             }
 
-            Map<String, Integer> prefixMap = new HashMap<>();
+            final Map<String, Integer> prefixMap = new HashMap<>();
             int colorIndex = 0;
 
             writer.println("\n    %% Dynamic Styling");
-            for (String name : theCourseMap.keySet()) {
-                if (!name.equalsIgnoreCase("None")) {
-                    String prefix = name.split(" ")[0];
-                    String id = name.replace(" ", "_");
+            for (final String name : theCourseMap.keySet()) {
+                if (!"None".equalsIgnoreCase(name)) {
+                    final String prefix = name.split(" ")[0];
+                    final String id = name.replace(" ", "_");
 
                     // Increment if new color.
                     if (!prefixMap.containsKey(prefix)) {
-                        int slot = colorIndex % COLORS.length;
+                        final int slot = colorIndex % COLORS.length;
                         writer.println("    classDef style" + prefix + " fill:" + COLORS[slot] +
                                 ",stroke:" + STROKES[slot] + ",stroke-width:2px;");
                         prefixMap.put(prefix, slot);
@@ -291,7 +312,7 @@ public class Main {
 
             // Apply a distinct dashed-border style for any node representing the major.
             writer.println("\n    classDef majorNode fill:#fff,stroke:#333,stroke-width:4px,stroke-dasharray: 5 5;");
-            for (String name : theCourseMap.keySet()) {
+            for (final String name : theCourseMap.keySet()) {
                 if (name.toLowerCase().contains("major")) {
                     writer.println("    class " + name.replace(" ", "_") + " majorNode");
                 }
