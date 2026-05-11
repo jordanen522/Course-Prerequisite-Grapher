@@ -4,12 +4,12 @@
  * Personal Project - Spring 2026
  * CoursePrequisiteGrapher
  */
-import java.util.Set;
+import java.util.List;
 
 /**
  * Defines the contract for the course node.
- * ANy class that implements this interface must represent a course that holds a name
- * and a set of direct successor courses.
+ * Any class that implements this interface must represent a course that holds a name
+ * and a list of direct successor courses.
  *
  * @author Jordan Eng
  * @version 4/20/2026
@@ -24,9 +24,9 @@ public interface CourseInterface {
     String getName();
 
     /**
-     * Returns a copy of the set of courses that directly follow this one.
+     * Returns a copy of the list of courses that directly follow this one.
      *
-     * @return a new Set containing the direct successors of this course.
+     * @return a new list containing the direct successors of this course.
      */
-    Set<CourseInterface> getNextCourses();
+    List<CourseInterface> getNextCourses();
 }
