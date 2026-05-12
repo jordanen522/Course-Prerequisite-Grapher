@@ -8,10 +8,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Entry point for the Course Prerequisite Grapher.
@@ -163,8 +163,8 @@ public final class Main {
         if (theCourseMap.isEmpty()) {
             throw new RuntimeException(thePath + " not found or empty.");
         }
-        final Set<Course> visited = new HashSet<>();
-        final Set<Course> stack = new HashSet<>();
+        final List<Course> visited = new ArrayList<>();
+        final List<Course> stack = new ArrayList<>();
 
         for (final Course current : theCourseMap.values()) {
             if (checkCycle(current, visited, stack)) {
@@ -182,8 +182,8 @@ public final class Main {
      * @return true if a cycle is detected; false otherwise.
      */
     public static boolean checkCycle(final Course theCurrent,
-                                     final Set<Course> theVisited,
-                                     final Set<Course> theStack) {
+                                     final List<Course> theVisited,
+                                     final List<Course> theStack) {
 
         if (theStack.contains(theCurrent)) {
             return true; // Found a loop because we have seen this course already this search.
