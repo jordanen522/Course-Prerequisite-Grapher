@@ -17,7 +17,7 @@ import java.util.List;
  * @author Jordan Eng
  * @version 5/11/2026
  */
-public class Course implements CourseInterface {
+public class Course {
 
     /**
      * The name of this course.
@@ -27,7 +27,7 @@ public class Course implements CourseInterface {
      * The mutable list of courses that have this course as a direct prerequisite.
      */
     // Set used to avoid duplicates.
-    private final List<CourseInterface> myNextCourses;
+    private final List<Course> myNextCourses;
 
     /**
      * Constructs a new Course with the given name and no direct successors.
@@ -60,9 +60,9 @@ public class Course implements CourseInterface {
      *
      * @return a new List containing the direct successors of this course.
      */
-    public List<CourseInterface> getNextCourses() {
+    public List<Course> getNextCourses() {
         // Returns a copy to preserve encapsulation.
-        return new ArrayList<CourseInterface>(myNextCourses);
+        return new ArrayList<Course>(myNextCourses);
     }
 
     /**
@@ -71,7 +71,7 @@ public class Course implements CourseInterface {
      * @param theCourse the course to add as a direct successor; mut not be null.
      * @throws IllegalArgumentException if theCourse is null.
      */
-    public void addNextCourse(final CourseInterface theCourse) throws IllegalArgumentException {
+    public void addNextCourse(final Course theCourse) throws IllegalArgumentException {
         if (theCourse == null) {
             throw new IllegalArgumentException("Course must not be bull.");
         }

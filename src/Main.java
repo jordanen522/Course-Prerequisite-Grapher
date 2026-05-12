@@ -19,7 +19,7 @@ import java.util.Set;
  * and saves a Mermaid diagram to OutputGraph.txt for visualization.
  *
  * @author Jordan Eng
- * @version 4/20/2026
+ * @version 5/11/2026
  */
 public final class Main {
 
@@ -65,12 +65,11 @@ public final class Main {
      */
     public static void validateUserInput(final Scanner theScanner) throws Exception {
         File targetFile = null;
-        String userFileName = "";
 
         // Keep prompting until the user provides a valid, existing file.
         while (targetFile == null || !targetFile.exists() || !targetFile.isFile()) {
             System.out.print("Enter File Name: ");
-            userFileName = theScanner.nextLine();
+            final String userFileName = theScanner.nextLine();
             targetFile = new File(userFileName);
 
             if (!targetFile.exists()) {
@@ -81,49 +80,51 @@ public final class Main {
         }
 
         // Proceed if the file is valid.
-        final String title = readTitle(userFileName);
-        final Map<String, CourseInterface> courseMap = loadCourses(userFileName);
-        validGraphStructure(courseMap, userFileName);
+        final String path = targetFile.getPath();
+        final String title = readTitle(path);
+        final Map<String, Course> courseMap = loadCourses(path);
+        validGraphStructure(courseMap, path);
         saveMermaidDiagram(courseMap, title);
 
         System.out.println("Success: Valid DAG detected and Mermaid code saved to " + OUTPUT_FILE + ".");
     }
 
     /**
-     * Reads the first line of the CSV file to find the title used for the
-     * Mermaid diagram, if empty return a default title.
+     * Reads the first line of the CSV file to find the title used for the Mermaid diagram.
+     * If empty return a default title.
      *
-     * @param theUserFileName the name of the users file.
-     * @return the first line of the file as a string or a default file name.
+     * @param thePath the path of the CSV file; must not be null.
+     * @return the first line of the file as a string or a default title if the file is empty.
      * @throws Exception if the file cannot be read.
      */
-    public static String readTitle(final String theUserFileName) throws Exception {
-        try (final Scanner fileScanner = new Scanner(new File(theUserFileName))) {
+    public static String readTitle(final String thePath) throws Exception {
+        try (final Scanner fileScanner = new Scanner(new File(thePath))) {
             if (fileScanner.hasNextLine()) {
                 return fileScanner.nextLine();
             }
         }
         return "Course Prerequisite Model using DAG";
     }
+
     /**
-     * Parses a CSV file into a map of fully constructed, immutable CourseInterface objects.
+     * Parses a CSV file into a map of fully constructed Course objects with their successors wired up.
      *
-     * @param theFileName the path of the CSV file to be parsed; must nto be null.
-     * @return a map of course names to CourseInterface objects.
+     * @param thePath the path of the CSV file to be parsed; must not be null.
+     * @return a map of course names to their fully constructed Course objects.
      * @throws Exception if the file cannot be read.
      */
-    public static Map<String, CourseInterface> loadCourses(final String theFileName) throws Exception {
-        final Map<String, Set<String>> courseObjectDataMap = new HashMap<>();
+    public static Map<String, Course> loadCourses(final String thePath) throws Exception {
+        final Map<String, Course> courseMap = new HashMap<>();
 
-        try (final Scanner fileScanner = new Scanner(new File(theFileName))) {
+        try (final Scanner fileScanner = new Scanner(new File(thePath))) {
             // Skip the header row
             if (fileScanner.hasNextLine()) {
                 fileScanner.nextLine();
             }
             while (fileScanner.hasNextLine()) {
-                final String line = fileScanner.nextLine();
+                final String line = fileScanner.nextLine().trim();
 
-                if (!line.trim().isEmpty()) {
+                if (!line.isEmpty()) {
                     final String[] parts = line.split(",");
 
                     // Skip malformed rows.
@@ -132,99 +133,40 @@ public final class Main {
                         final String successorName = parts[1].trim();
 
                         // Creates a new objects if it does not exist in the map already.
-                        courseObjectDataMap.putIfAbsent(courseName, new HashSet<>());
-                        courseObjectDataMap.putIfAbsent(successorName, new HashSet<>());
+                        courseMap.putIfAbsent(courseName, new Course(courseName));
+                        courseMap.putIfAbsent(successorName, new Course(courseName));
 
                         /*
-                         * Add the direct successor to the set of the course.
-                         * get(courseName) returns the HashSet value to the courseName key,
-                         * add(successorName) adds the successorName to the returned HashSet.
+                         * courseMap.get(courseName) returns the Course object to the courseName key,
+                         * .addNextCourse(courseMap.get(successorName)) adds the successor Course
+                         * to the ArrayList of the first course.
                          */
-                        courseObjectDataMap.get(courseName).add(successorName);
+                        courseMap.get(courseName).addNextCourse(courseMap.get(successorName));
                     }
                 }
             }
         }
-
-        final Map<String, CourseInterface> resultCourseMap = new HashMap<>();
-        final Set<String> stack = new HashSet<>();
-        /*
-         * keySet returns a set of all keys.
-         * For each key in the set of all keys.
-         */
-        for (final String courseObjectData : courseObjectDataMap.keySet()) {
-            buildCourse(courseObjectData, courseObjectDataMap, resultCourseMap, stack);
-        }
-        return resultCourseMap;
-    }
-
-    // Return statement is only used in recursive calls.
-    /**
-     * Recursively constructs a CourseInterface object and all of its successors.
-     * Direct successor sets are built before constructing the CourseInterface object
-     * to prevent mutability.
-     *
-     * @param theCourseName the name of the course being built; must not be null.
-     * @param theCourseObjectDataMap the string data of course objects to be built.
-     * @param theResultCourseMap the map of constructed courses.
-     * @return the fully constructed CourseInterface.
-     */
-    private static CourseInterface buildCourse(final String theCourseName,
-                                      final Map<String, Set<String>> theCourseObjectDataMap,
-                                      final Map<String, CourseInterface> theResultCourseMap,
-                                      final Set<String> theStack) {
-
-        // If it's in the map return we are done.
-        if (theResultCourseMap.containsKey(theCourseName)) {
-            return theResultCourseMap.get(theCourseName);
-        }
-        if (theStack.contains(theCourseName)) {
-            throw new IllegalArgumentException("Cycle detected in CSV data: " + theCourseName);
-        }
-        theStack.add(theCourseName);
-
-        /*
-         * If not in the map recursively build each successor Course before building this one.
-         * Each course object after this node needs to be created to add it to this node.
-         *
-         * For each String successor in the String successor set, build the Course object and add it to the
-         * Course Successor set for this object.
-         */
-        final Set<CourseInterface> successors = new HashSet<>();
-        for (final String successorName : theCourseObjectDataMap.get(theCourseName)) {
-            if (successorName.equals(theCourseName)) {
-                throw new IllegalArgumentException("Self-loop detected: " + theCourseName
-                        + " cannot be its own prerequisite.");
-            }
-            successors.add(buildCourse(successorName, theCourseObjectDataMap, theResultCourseMap, theStack));
-        }
-        theStack.remove(theCourseName);
-
-        // Create the new Course after you have made the Course object set of all successors.
-        final CourseInterface course = new Course(theCourseName, successors);
-        theResultCourseMap.put(theCourseName, course);
-
-        return course;
+        return courseMap;
     }
 
     /**
      * Validates that the course data forms a Directed Acyclic Graph (DAG).
      * Uses Depth-First Search across all nodes to detect any cycles.
      *
-     * @param theCourseMap the map of course names to CourseInterface objects.
-     * @param theFileName the name of the source file, used for error messages.
+     * @param theCourseMap the map of course names to Course objects.
+     * @param thePath the path of the CSV file to be parsed.
      * @throws RuntimeException if the map is empty or a cycle is found.
      */
-    public static void validGraphStructure(final Map<String, CourseInterface> theCourseMap,
-                                           final String theFileName) {
+    public static void validGraphStructure(final Map<String, Course> theCourseMap,
+                                           final String thePath) {
 
         if (theCourseMap.isEmpty()) {
-            throw new RuntimeException(theFileName + " not found or empty.");
+            throw new RuntimeException(thePath + " not found or empty.");
         }
-        final Set<CourseInterface> visited = new HashSet<>();
-        final Set<CourseInterface> stack = new HashSet<>();
+        final Set<Course> visited = new HashSet<>();
+        final Set<Course> stack = new HashSet<>();
 
-        for (final CourseInterface current : theCourseMap.values()) {
+        for (final Course current : theCourseMap.values()) {
             if (checkCycle(current, visited, stack)) {
                 throw new RuntimeException("Data is not a DAG.");
             }
@@ -239,9 +181,9 @@ public final class Main {
      * @param theStack the set of courses in current path.
      * @return true if a cycle is detected; false otherwise.
      */
-    public static boolean checkCycle(final CourseInterface theCurrent,
-                                     final Set<CourseInterface> theVisited,
-                                     final Set<CourseInterface> theStack) {
+    public static boolean checkCycle(final Course theCurrent,
+                                     final Set<Course> theVisited,
+                                     final Set<Course> theStack) {
 
         if (theStack.contains(theCurrent)) {
             return true; // Found a loop because we have seen this course already this search.
@@ -256,7 +198,7 @@ public final class Main {
         /*
          * Check each successor in the set of successors.
          */
-        for (final CourseInterface next : theCurrent.getNextCourses()) {
+        for (final Course next : theCurrent.getNextCourses()) {
             if (checkCycle(next, theVisited, theStack)) {
                 return true;
             }
@@ -269,10 +211,11 @@ public final class Main {
     /**
      * Converts the course map data into Mermaid diagram syntax and saves it into a text file.
      *
-     * @param theCourseMap the map of course names to CourseInterface objects.
+     * @param theCourseMap the map of course names to Course objects.
+     * @param theTitle the diagram title read from the CSV file.
      * @throws IOException if the output file cannot be written.
      */
-    public static void saveMermaidDiagram(final Map<String, CourseInterface> theCourseMap,
+    public static void saveMermaidDiagram(final Map<String, Course> theCourseMap,
                                           final String theTitle) throws IOException {
 
         try (final PrintWriter writer = new PrintWriter(OUTPUT_FILE)) {
@@ -282,8 +225,8 @@ public final class Main {
             writer.println("graph TD"); // Top-down graph instead of left-right (Just replace TD with LR)
 
             // Print each course with successors.
-            for (final CourseInterface parent : theCourseMap.values()) {
-                for (final CourseInterface child : parent.getNextCourses()) {
+            for (final Course parent : theCourseMap.values()) {
+                for (final Course child : parent.getNextCourses()) {
                     final String pId = parent.getName().replace(" ", "_");
                     final String cId = child.getName().replace(" ", "_");
                     writer.println("    " + pId + "[\"" + parent.getName()
