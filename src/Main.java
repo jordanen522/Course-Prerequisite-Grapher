@@ -134,7 +134,7 @@ public final class Main {
 
                         // Creates a new objects if it does not exist in the map already.
                         courseMap.putIfAbsent(courseName, new Course(courseName));
-                        courseMap.putIfAbsent(successorName, new Course(courseName));
+                        courseMap.putIfAbsent(successorName, new Course(successorName));
 
                         /*
                          * courseMap.get(courseName) returns the Course object to the courseName key,
