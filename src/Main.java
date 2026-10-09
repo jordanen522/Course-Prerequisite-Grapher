@@ -2,16 +2,16 @@
  * Main.java
  *
  * Personal Project - Spring 2026
- * CoursePrequisiteGrapher
+ * Course-Prerequisite-Grapher
  */
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Entry point for the Course Prerequisite Grapher.
@@ -19,7 +19,7 @@ import java.util.List;
  * and saves a Mermaid diagram to OutputGraph.txt for visualization.
  *
  * @author Jordan Eng
- * @version 5/11/2026
+ * @version 10/9/2026
  */
 public final class Main {
 
@@ -37,6 +37,15 @@ public final class Main {
     private static final String[] STROKES = {"#01579b", "#2e7d32", "#e65100", "#7b1fa2", "#558b2f", "#fbc02d"};
 
     /**
+     * The contents of a parsed CSV file.
+     *
+     * @param title the diagram title from the first line of the file.
+     * @param courses the map of course names to their fully constructed Course objects.
+     */
+    public record CourseGraph(String title, Map<String, Course> courses) {
+    }
+
+    /**
      * Private constructor to prevent accidental initialization.
      */
     private Main() {
@@ -51,19 +60,20 @@ public final class Main {
      */
     public static void main(final String[] theArgs) {
         try (final Scanner consoleScanner = new Scanner(System.in)) {
-            validateUserInput(consoleScanner);
+            run(consoleScanner);
         } catch (final Exception e) {
             System.err.println("Error: " + e.getMessage());
         }
     }
 
     /**
-     * Prompts the user for a valid file path, then loads, validates, and calls diagram generation.
+     * Runs the whole pipeline: prompts the user for a valid file path, then loads the courses,
+     * validates that they form a DAG, and saves the Mermaid diagram.
      *
      * @param theScanner the scanner used to read keyboard input.
      * @throws Exception if loading, validation, or file writing fails.
      */
-    public static void validateUserInput(final Scanner theScanner) throws Exception {
+    public static void run(final Scanner theScanner) throws Exception {
         File targetFile = null;
 
         // Keep prompting until the user provides a valid, existing file.
@@ -81,45 +91,30 @@ public final class Main {
 
         // Proceed if the file is valid.
         final String path = targetFile.getPath();
-        final String title = readTitle(path);
-        final Map<String, Course> courseMap = loadCourses(path);
-        validGraphStructure(courseMap, path);
-        saveMermaidDiagram(courseMap, title);
+        final CourseGraph graph = loadCourses(path);
+        validateGraphStructure(graph.courses(), path);
+        saveMermaidDiagram(graph.courses(), graph.title());
 
         System.out.println("Success: Valid DAG detected and Mermaid code saved to " + OUTPUT_FILE + ".");
     }
 
     /**
-     * Reads the first line of the CSV file to find the title used for the Mermaid diagram.
-     * If empty return a default title.
-     *
-     * @param thePath the path of the CSV file; must not be null.
-     * @return the first line of the file as a string or a default title if the file is empty.
-     * @throws Exception if the file cannot be read.
-     */
-    public static String readTitle(final String thePath) throws Exception {
-        try (final Scanner fileScanner = new Scanner(new File(thePath))) {
-            if (fileScanner.hasNextLine()) {
-                return fileScanner.nextLine();
-            }
-        }
-        return "Course Prerequisite Model using DAG";
-    }
-
-    /**
-     * Parses a CSV file into a map of fully constructed Course objects with their successors wired up.
+     * Parses a CSV file in a single pass. The first line is the diagram title and every later line is a
+     * "prerequisite,successor" pair. Course compares by identity, so the course map is what guarantees
+     * exactly one Course instance per name.
      *
      * @param thePath the path of the CSV file to be parsed; must not be null.
-     * @return a map of course names to their fully constructed Course objects.
+     * @return the diagram title and a map of course names to their fully constructed Course objects.
      * @throws Exception if the file cannot be read.
      */
-    public static Map<String, Course> loadCourses(final String thePath) throws Exception {
+    public static CourseGraph loadCourses(final String thePath) throws Exception {
         final Map<String, Course> courseMap = new HashMap<>();
+        String title = "";
 
         try (final Scanner fileScanner = new Scanner(new File(thePath))) {
-            // Skip the header row
+            // The first line is the diagram title, not a prerequisite pair.
             if (fileScanner.hasNextLine()) {
-                fileScanner.nextLine();
+                title = fileScanner.nextLine().trim();
             }
             while (fileScanner.hasNextLine()) {
                 final String line = fileScanner.nextLine().trim();
@@ -127,26 +122,22 @@ public final class Main {
                 if (!line.isEmpty()) {
                     final String[] parts = line.split(",");
 
-                    // Skip malformed rows.
-                    if (parts.length >= 2) {
-                        final String courseName = parts[0].trim();
-                        final String successorName = parts[1].trim();
+                    final String courseName = parts.length >= 2 ? parts[0].trim() : "";
+                    final String successorName = parts.length >= 2 ? parts[1].trim() : "";
 
-                        // Creates a new objects if it does not exist in the map already.
-                        courseMap.putIfAbsent(courseName, new Course(courseName));
-                        courseMap.putIfAbsent(successorName, new Course(successorName));
+                    // Skip malformed rows: fewer than two columns or a blank course name.
+                    if (!courseName.isEmpty() && !successorName.isEmpty()) {
+                        // Reuse the existing Course for each name, or create one only if it is missing.
+                        final Course course = courseMap.computeIfAbsent(courseName, Course::new);
+                        final Course successor = courseMap.computeIfAbsent(successorName, Course::new);
 
-                        /*
-                         * courseMap.get(courseName) returns the Course object to the courseName key,
-                         * .addNextCourse(courseMap.get(successorName)) adds the successor Course
-                         * to the ArrayList of the first course.
-                         */
-                        courseMap.get(courseName).addNextCourse(courseMap.get(successorName));
+                        // Duplicate rows are ignored since successors are stored in a Set.
+                        course.addNextCourse(successor);
                     }
                 }
             }
         }
-        return courseMap;
+        return new CourseGraph(title, courseMap);
     }
 
     /**
@@ -157,17 +148,17 @@ public final class Main {
      * @param thePath the path of the CSV file to be parsed.
      * @throws RuntimeException if the map is empty or a cycle is found.
      */
-    public static void validGraphStructure(final Map<String, Course> theCourseMap,
-                                           final String thePath) {
+    public static void validateGraphStructure(final Map<String, Course> theCourseMap,
+                                              final String thePath) {
 
         if (theCourseMap.isEmpty()) {
             throw new RuntimeException(thePath + " not found or empty.");
         }
-        final List<Course> visited = new ArrayList<>();
-        final List<Course> stack = new ArrayList<>();
+        final Set<Course> visited = new HashSet<>();
+        final Set<Course> onPath = new HashSet<>();
 
         for (final Course current : theCourseMap.values()) {
-            if (checkCycle(current, visited, stack)) {
+            if (checkCycle(current, visited, onPath)) {
                 throw new RuntimeException("Data is not a DAG.");
             }
         }
@@ -178,33 +169,33 @@ public final class Main {
      *
      * @param theCurrent the course currently being viewed.
      * @param theVisited the set of all courses already visited.
-     * @param theStack the set of courses in current path.
+     * @param theOnPath the set of courses on the current DFS path.
      * @return true if a cycle is detected; false otherwise.
      */
     public static boolean checkCycle(final Course theCurrent,
-                                     final List<Course> theVisited,
-                                     final List<Course> theStack) {
+                                     final Set<Course> theVisited,
+                                     final Set<Course> theOnPath) {
 
-        if (theStack.contains(theCurrent)) {
-            return true; // Found a loop because we have seen this course already this search.
+        if (theOnPath.contains(theCurrent)) {
+            return true; // Found a loop because this course is already on the current path.
         }
         if (theVisited.contains(theCurrent)) {
-            return false; // Stop checking, already checked.
+            return false; // Stop checking, already fully explored with no cycle.
         }
 
         theVisited.add(theCurrent);
-        theStack.add(theCurrent);
+        theOnPath.add(theCurrent);
 
         /*
          * Check each successor in the set of successors.
          */
         for (final Course next : theCurrent.getNextCourses()) {
-            if (checkCycle(next, theVisited, theStack)) {
+            if (checkCycle(next, theVisited, theOnPath)) {
                 return true;
             }
         }
 
-        theStack.remove(theCurrent); // Remove this Course since it has already been checked and is safe.
+        theOnPath.remove(theCurrent); // Leaving this course; every path through it is cycle free.
         return false;
     }
 
@@ -218,19 +209,22 @@ public final class Main {
     public static void saveMermaidDiagram(final Map<String, Course> theCourseMap,
                                           final String theTitle) throws IOException {
 
+        final Map<String, String> nodeIds = buildNodeIds(theCourseMap);
+
         try (final PrintWriter writer = new PrintWriter(OUTPUT_FILE)) {
             writer.println("---");
-            writer.println("title: " + theTitle); // Mermaid title
+            // Mermaid title, quoted so characters like ':' do not break the YAML front matter.
+            writer.println("title: \"" + theTitle.replace("\\", "\\\\").replace("\"", "\\\"") + "\"");
             writer.println("---");
             writer.println("graph TD"); // Top-down graph instead of left-right (Just replace TD with LR)
 
             // Print each course with successors.
             for (final Course parent : theCourseMap.values()) {
+                final String pNode = nodeIds.get(parent.getName()) + "[\"" + toLabel(parent.getName()) + "\"]";
+
                 for (final Course child : parent.getNextCourses()) {
-                    final String pId = parent.getName().replace(" ", "_");
-                    final String cId = child.getName().replace(" ", "_");
-                    writer.println("    " + pId + "[\"" + parent.getName()
-                            + "\"] --> " + cId + "[\"" + child.getName() + "\"]");
+                    final String cNode = nodeIds.get(child.getName()) + "[\"" + toLabel(child.getName()) + "\"]";
+                    writer.println("    " + pNode + " --> " + cNode);
                 }
             }
 
@@ -240,18 +234,17 @@ public final class Main {
             writer.println("\n    %% Dynamic Styling");
             for (final String name : theCourseMap.keySet()) {
                 if (!"None".equalsIgnoreCase(name)) {
-                    final String prefix = name.split(" ")[0];
-                    final String id = name.replace(" ", "_");
+                    final String styleClass = "style" + sanitize(name.split(" ")[0]);
 
                     // Increment if new color.
-                    if (!prefixMap.containsKey(prefix)) {
+                    if (!prefixMap.containsKey(styleClass)) {
                         final int slot = colorIndex % COLORS.length;
-                        writer.println("    classDef style" + prefix + " fill:" + COLORS[slot] +
+                        writer.println("    classDef " + styleClass + " fill:" + COLORS[slot] +
                                 ",stroke:" + STROKES[slot] + ",stroke-width:2px;");
-                        prefixMap.put(prefix, slot);
+                        prefixMap.put(styleClass, slot);
                         colorIndex++;
                     }
-                    writer.println("    class " + id + " style" + prefix);
+                    writer.println("    class " + nodeIds.get(name) + " " + styleClass);
                 }
             }
 
@@ -259,9 +252,80 @@ public final class Main {
             writer.println("\n    classDef majorNode fill:#fff,stroke:#333,stroke-width:4px,stroke-dasharray: 5 5;");
             for (final String name : theCourseMap.keySet()) {
                 if (name.toLowerCase().contains("major")) {
-                    writer.println("    class " + name.replace(" ", "_") + " majorNode");
+                    writer.println("    class " + nodeIds.get(name) + " majorNode");
                 }
             }
         }
+    }
+
+    /**
+     * Assigns every course name, including successors that are not map keys, a unique Mermaid node ID.
+     * Names that sanitize to the same ID (e.g. "TCSS-101" and "TCSS 101") get a numeric suffix.
+     *
+     * @param theCourseMap the map of course names to Course objects.
+     * @return a map of course names to their Mermaid node IDs.
+     */
+    public static Map<String, String> buildNodeIds(final Map<String, Course> theCourseMap) {
+        final Map<String, String> nodeIds = new HashMap<>();
+        final Set<String> usedIds = new HashSet<>();
+
+        for (final Course course : theCourseMap.values()) {
+            assignNodeId(course.getName(), nodeIds, usedIds);
+
+            for (final Course next : course.getNextCourses()) {
+                assignNodeId(next.getName(), nodeIds, usedIds);
+            }
+        }
+        return nodeIds;
+    }
+
+    /**
+     * Gives a course name a Mermaid node ID if it does not have one yet.
+     *
+     * @param theName the course name.
+     * @param theNodeIds the map of course names to node IDs assigned so far.
+     * @param theUsedIds the set of node IDs already taken.
+     */
+    private static void assignNodeId(final String theName,
+                                     final Map<String, String> theNodeIds,
+                                     final Set<String> theUsedIds) {
+        if (theNodeIds.containsKey(theName)) {
+            return;
+        }
+
+        String baseId = sanitize(theName);
+
+        // Mermaid reserves "end", and an empty ID is not a valid node.
+        if (baseId.isEmpty() || "end".equalsIgnoreCase(baseId)) {
+            baseId = "n_" + baseId;
+        }
+
+        String id = baseId;
+        int suffix = 2;
+        while (!theUsedIds.add(id)) {
+            id = baseId + "_" + suffix;
+            suffix++;
+        }
+        theNodeIds.put(theName, id);
+    }
+
+    /**
+     * Replaces every character Mermaid does not allow in IDs and class names with an underscore.
+     *
+     * @param theText the text to sanitize.
+     * @return the text using only [A-Za-z0-9_].
+     */
+    private static String sanitize(final String theText) {
+        return theText.replaceAll("[^A-Za-z0-9_]", "_");
+    }
+
+    /**
+     * Escapes a course name for use inside a quoted Mermaid node label.
+     *
+     * @param theName the course name.
+     * @return the name with double quotes escaped.
+     */
+    private static String toLabel(final String theName) {
+        return theName.replace("\"", "#quot;");
     }
 }
