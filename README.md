@@ -75,8 +75,8 @@ into a ` ```mermaid ` code block in any Markdown file on GitHub.
 - **Prefix colors:** Each node is colored by the first word of its name, so every `TCSS ...` course shares
   one color. Six colors are available. After that, the colors repeat.
 - **`None` nodes:** A node named `None` (any capitalization) is drawn without a prefix color.
-- **Major nodes:** Any node whose name contains `major` (any capitalization), such as `CSS Major`, gets a
-  dashed border on top of its prefix color.
+- **Major nodes:** Any node whose name contains `major` (any capitalization), such as `CSS Major`, is drawn
+  white with a thick, dark dashed border. This replaces its prefix color so the major stands out.
 - **Node IDs:** Mermaid IDs only allow letters, digits and `_`, so every other character becomes `_`
   (`TCSS 101` → `TCSS_101`). Names that clean up to the same ID get a numeric suffix (`TCSS_101_2`), and a node
   named `end` becomes `n_end` because `end` is reserved in Mermaid. Labels always show the original name.
@@ -109,7 +109,7 @@ Course-Prerequisite-Grapher/
 │   └── MainTest.java        # JUnit 5 tests
 ├── *BSCSS.csv               # Sample data for the BS in Computer Science and Systems
 ├── your_file.csv            <-- (Place files here!)
-├── OutputGraph.txt          # Generated Mermaid diagram
+├── OutputGraph.txt          # Generated Mermaid diagram (gitignored)
 ├── LICENSE
 └── README.md
 ```
@@ -125,7 +125,7 @@ Sample data files:
 | `CompleteDegreeBSCSS.csv` | How the requirement groups combine into the full degree |
 
 ## Example Output
-Below is a visualization of the current model for the CSS Major:
+Below is the generated diagram for `CoreCoursesBSCSS.csv`, the core courses of the CSS major:
 
 ```mermaid
 ---
@@ -134,27 +134,16 @@ title: "Core Courses BSCSS"
 graph TD
     TCSS_305["TCSS 305"] --> TCSS_342["TCSS 342"]
     TCSS_321["TCSS 321"] --> TCSS_342["TCSS 342"]
-    TCSS_342["TCSS 342"] --> TCSS_360["TCSS 360"]
-    TCSS_342["TCSS 342"] --> TCSS_343["TCSS 343"]
     TCSS_342["TCSS 342"] --> TCSS_380["TCSS 380"]
+    TCSS_342["TCSS 342"] --> TCSS_343["TCSS 343"]
+    TCSS_342["TCSS 342"] --> TCSS_360["TCSS 360"]
+    CSS_Major["CSS Major"] --> TCSS_321["TCSS 321"]
+    CSS_Major["CSS Major"] --> TCSS_325["TCSS 325"]
     CSS_Major["CSS Major"] --> TCSS_371["TCSS 371"]
     CSS_Major["CSS Major"] --> TCSS_305["TCSS 305"]
-    CSS_Major["CSS Major"] --> TCSS_325["TCSS 325"]
-    CSS_Major["CSS Major"] --> TCSS_321["TCSS 321"]
-    High_School_Math_Placement["High School Math Placement"] --> TMATH_115["TMATH 115"]
-    Lab_Based_Science_Except_Astronomy["Lab Based Science Except Astronomy"] --> CSS_Major["CSS Major"]
-    TMATH_124["TMATH 124"] --> CSS_Major["CSS Major"]
-    TMATH_124["TMATH 124"] --> TMATH_125["TMATH 125"]
     TMATH_125["TMATH 125"] --> TMATH_126["TMATH 126"]
     TMATH_125["TMATH 125"] --> TMATH_208["TMATH 208"]
-    TMATH_125["TMATH 125"] --> CSS_Major["CSS Major"]
     TMATH_126["TMATH 126"] --> TMATH_390["TMATH 390"]
-    TMATH_115["TMATH 115"] --> TMATH_116["TMATH 116"]
-    TMATH_116["TMATH 116"] --> TCSS_142["TCSS 142"]
-    TMATH_116["TMATH 116"] --> TMATH_124["TMATH 124"]
-    TCSS_143["TCSS 143"] --> CSS_Major["CSS Major"]
-    TCSS_142["TCSS 142"] --> TCSS_143["TCSS 143"]
-    TCSS_142["TCSS 142"] --> CSS_Major["CSS Major"]
     TCSS_372["TCSS 372"] --> TCSS_422["TCSS 422"]
     TCSS_371["TCSS 371"] --> TCSS_372["TCSS 372"]
     TCSS_371["TCSS 371"] --> TCSS_380["TCSS 380"]
@@ -165,25 +154,16 @@ graph TD
     class TCSS_305 styleTCSS
     class TCSS_325 styleTCSS
     class TCSS_422 styleTCSS
-    class TCSS_343 styleTCSS
-    class TCSS_321 styleTCSS
     classDef styleTMATH fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
     class TMATH_390 styleTMATH
+    class TCSS_343 styleTCSS
+    class TCSS_321 styleTCSS
     class TCSS_342 styleTCSS
     classDef styleCSS fill:#fff3e0,stroke:#e65100,stroke-width:2px;
     class CSS_Major styleCSS
-    classDef styleHigh fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
-    class High_School_Math_Placement styleHigh
-    classDef styleLab fill:#f1f8e9,stroke:#558b2f,stroke-width:2px;
-    class Lab_Based_Science_Except_Astronomy styleLab
-    class TMATH_124 styleTMATH
     class TMATH_125 styleTMATH
     class TMATH_126 styleTMATH
-    class TMATH_115 styleTMATH
-    class TMATH_116 styleTMATH
     class TMATH_208 styleTMATH
-    class TCSS_143 styleTCSS
-    class TCSS_142 styleTCSS
     class TCSS_372 styleTCSS
     class TCSS_360 styleTCSS
     class TCSS_371 styleTCSS
