@@ -8,10 +8,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Entry point for the Course Prerequisite Grapher.
@@ -19,7 +19,7 @@ import java.util.List;
  * and saves a Mermaid diagram to OutputGraph.txt for visualization.
  *
  * @author Jordan Eng
- * @version 5/11/2026
+ * @version 10/9/2026
  */
 public final class Main {
 
@@ -108,6 +108,7 @@ public final class Main {
 
     /**
      * Parses a CSV file into a map of fully constructed Course objects with their successors wired up.
+     * Course compares by identity, so this map is what guarantees exactly one Course instance per name.
      *
      * @param thePath the path of the CSV file to be parsed; must not be null.
      * @return a map of course names to their fully constructed Course objects.
@@ -132,16 +133,12 @@ public final class Main {
                         final String courseName = parts[0].trim();
                         final String successorName = parts[1].trim();
 
-                        // Creates a new objects if it does not exist in the map already.
-                        courseMap.putIfAbsent(courseName, new Course(courseName));
-                        courseMap.putIfAbsent(successorName, new Course(successorName));
+                        // Reuse the existing Course for each name, or create one only if it is missing.
+                        final Course course = courseMap.computeIfAbsent(courseName, Course::new);
+                        final Course successor = courseMap.computeIfAbsent(successorName, Course::new);
 
-                        /*
-                         * courseMap.get(courseName) returns the Course object to the courseName key,
-                         * .addNextCourse(courseMap.get(successorName)) adds the successor Course
-                         * to the ArrayList of the first course.
-                         */
-                        courseMap.get(courseName).addNextCourse(courseMap.get(successorName));
+                        // Duplicate rows are ignored since successors are stored in a Set.
+                        course.addNextCourse(successor);
                     }
                 }
             }
@@ -163,8 +160,8 @@ public final class Main {
         if (theCourseMap.isEmpty()) {
             throw new RuntimeException(thePath + " not found or empty.");
         }
-        final List<Course> visited = new ArrayList<>();
-        final List<Course> stack = new ArrayList<>();
+        final Set<Course> visited = new HashSet<>();
+        final Set<Course> stack = new HashSet<>();
 
         for (final Course current : theCourseMap.values()) {
             if (checkCycle(current, visited, stack)) {
@@ -182,8 +179,8 @@ public final class Main {
      * @return true if a cycle is detected; false otherwise.
      */
     public static boolean checkCycle(final Course theCurrent,
-                                     final List<Course> theVisited,
-                                     final List<Course> theStack) {
+                                     final Set<Course> theVisited,
+                                     final Set<Course> theStack) {
 
         if (theStack.contains(theCurrent)) {
             return true; // Found a loop because we have seen this course already this search.
@@ -226,8 +223,9 @@ public final class Main {
 
             // Print each course with successors.
             for (final Course parent : theCourseMap.values()) {
+                final String pId = parent.getName().replace(" ", "_");
+
                 for (final Course child : parent.getNextCourses()) {
-                    final String pId = parent.getName().replace(" ", "_");
                     final String cId = child.getName().replace(" ", "_");
                     writer.println("    " + pId + "[\"" + parent.getName()
                             + "\"] --> " + cId + "[\"" + child.getName() + "\"]");
