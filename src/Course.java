@@ -2,7 +2,7 @@
  * Course.java
  *
  * Personal Project - Spring 2026
- * CoursePrequisiteGrapher
+ * Course-Prerequisite-Grapher
  */
 import java.util.Collections;
 import java.util.HashSet;
@@ -86,7 +86,7 @@ public class Course {
         super();
 
         if (theName == null) {
-            throw new IllegalArgumentException("Course can not be null.");
+            throw new IllegalArgumentException("Course name cannot be null.");
         }
 
         myName = theName;
@@ -120,7 +120,7 @@ public class Course {
      */
     public boolean addNextCourse(final Course theCourse) throws IllegalArgumentException {
         if (theCourse == null) {
-            throw new IllegalArgumentException("Course can not be null.");
+            throw new IllegalArgumentException("Course cannot be null.");
         }
 
         return myNextCourses.add(theCourse);

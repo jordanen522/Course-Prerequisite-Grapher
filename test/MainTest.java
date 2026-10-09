@@ -2,7 +2,7 @@
  * MainTest.java
  *
  * Personal Project - Spring 2026
- * CoursePrequisiteGrapher
+ * Course-Prerequisite-Grapher
  */
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -45,7 +45,7 @@ class MainTest {
         testMap.put(tcss103.getName(), tcss103);
 
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> Main.validGraphStructure(testMap, "testMap.csv"),
+                () -> Main.validateGraphStructure(testMap, "testMap.csv"),
                 "The validator failed to detect the cycle.");
         assertEquals("Data is not a DAG.", exception.getMessage());
     }
@@ -75,7 +75,7 @@ class MainTest {
         testMap.put(tcss105.getName(), tcss105);
 
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> Main.validGraphStructure(testMap, "testMap.csv"));
+                () -> Main.validateGraphStructure(testMap, "testMap.csv"));
         assertEquals("Data is not a DAG.", exception.getMessage());
     }
 
@@ -102,7 +102,7 @@ class MainTest {
         testMap.put(tcss103.getName(), tcss103);
 
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> Main.validGraphStructure(testMap, "testMap.csv"));
+                () -> Main.validateGraphStructure(testMap, "testMap.csv"));
         assertEquals("Data is not a DAG.", exception.getMessage());
     }
 
@@ -123,7 +123,7 @@ class MainTest {
         testMap.put(tcss101.getName(), tcss101);
 
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> Main.validGraphStructure(testMap, "testMap.csv"));
+                () -> Main.validateGraphStructure(testMap, "testMap.csv"));
         assertEquals("Data is not a DAG.", exception.getMessage());
     }
 
@@ -150,7 +150,7 @@ class MainTest {
         testMap.put(tcss301.getName(), tcss301);
 
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> Main.validGraphStructure(testMap, "testMap.csv"));
+                () -> Main.validateGraphStructure(testMap, "testMap.csv"));
         assertEquals("Data is not a DAG.", exception.getMessage());
     }
 
@@ -178,7 +178,7 @@ class MainTest {
         testMap.put(math103.getName(), math103);
 
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> Main.validGraphStructure(testMap, "testMap.csv"));
+                () -> Main.validateGraphStructure(testMap, "testMap.csv"));
         assertEquals("Data is not a DAG.", exception.getMessage());
     }
 
@@ -194,7 +194,7 @@ class MainTest {
         Map<String, Course> testMap = new HashMap<>();
         testMap.put(tcss101.getName(), tcss101);
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> Main.validGraphStructure(testMap, "testMap.csv"));
+                () -> Main.validateGraphStructure(testMap, "testMap.csv"));
         assertEquals("Data is not a DAG.", exception.getMessage());
     }
 
@@ -213,7 +213,7 @@ class MainTest {
         testMap.put(tcss101.getName(), tcss101);
         testMap.put(tcss201.getName(), tcss201);
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> Main.validGraphStructure(testMap, "testMap.csv"));
+                () -> Main.validateGraphStructure(testMap, "testMap.csv"));
         assertEquals("Data is not a DAG.", exception.getMessage());
     }
 
@@ -236,10 +236,10 @@ class MainTest {
         testMap.put(tcss103.getName(), tcss103);
 
         assertThrows(RuntimeException.class,
-                () -> Main.validGraphStructure(testMap, "testMap.csv"));
+                () -> Main.validateGraphStructure(testMap, "testMap.csv"));
 
         assertTrue(tcss103.removeNextCourse(tcss101));
-        assertDoesNotThrow(() -> Main.validGraphStructure(testMap, "testMap.csv"),
+        assertDoesNotThrow(() -> Main.validateGraphStructure(testMap, "testMap.csv"),
                 "Graph should be a DAG once the back edge is removed.");
     }
 
@@ -252,7 +252,7 @@ class MainTest {
     void testEmptyMapValidation() {
         Map<String, Course> emptyMap = new HashMap<>();
         assertThrows(RuntimeException.class,
-                () -> Main.validGraphStructure(emptyMap, "emptyMap.csv"),
+                () -> Main.validateGraphStructure(emptyMap, "emptyMap.csv"),
                 "Should throw RuntimeException for empty map.");
     }
 
@@ -269,7 +269,7 @@ class MainTest {
         Map<String, Course> testMap = new HashMap<>();
         testMap.put(tcss101.getName(), tcss101);
         testMap.put(tcss201.getName(), tcss201);
-        assertDoesNotThrow(() -> Main.validGraphStructure(testMap, "testMap.csv"));
+        assertDoesNotThrow(() -> Main.validateGraphStructure(testMap, "testMap.csv"));
     }
 
     /**
@@ -292,7 +292,7 @@ class MainTest {
         testMap.put(tcss201.getName(), tcss201);
         testMap.put(tcss202.getName(), tcss202);
         testMap.put(tcss301.getName(), tcss301);
-        assertDoesNotThrow(() -> Main.validGraphStructure(testMap, "testMap.csv"),
+        assertDoesNotThrow(() -> Main.validateGraphStructure(testMap, "testMap.csv"),
                 "A diamond structure is valid and should not be flagged as a cycle.");
     }
 
@@ -313,11 +313,11 @@ class MainTest {
         testMap.put(tcss101.getName(), tcss101);
         testMap.put(tcss201.getName(), tcss201);
         testMap.put(tcss301.getName(), tcss301);
-        assertDoesNotThrow(() -> Main.validGraphStructure(testMap, "testMap.csv"));
+        assertDoesNotThrow(() -> Main.validateGraphStructure(testMap, "testMap.csv"));
     }
 
     /**
-     * Verifies seperate acyclic graphs pass.
+     * Verifies separate acyclic graphs pass.
      */
     @Test
     void testDisconnectedComponents() {
@@ -334,7 +334,7 @@ class MainTest {
         testMap.put(tcss102.getName(), tcss102);
         testMap.put(math101.getName(), math101);
         testMap.put(math102.getName(), math102);
-        assertDoesNotThrow(() -> Main.validGraphStructure(testMap, "testMap.csv"),
+        assertDoesNotThrow(() -> Main.validateGraphStructure(testMap, "testMap.csv"),
                 "Disconnected acyclic components should pass validation.");
     }
 
@@ -351,7 +351,7 @@ class MainTest {
     void testLoadCoursesIndirectCycleFromCsv(@TempDir Path theTempDir) throws Exception {
         Path csv = writeCsv(theTempDir, "Loop\nTCSS 101,TCSS 102\nTCSS 102,TCSS 103\nTCSS 103,TCSS 101\n");
 
-        Map<String, Course> courseMap = Main.loadCourses(csv.toString());
+        Map<String, Course> courseMap = Main.loadCourses(csv.toString()).courses();
 
         assertEquals(3, courseMap.size());
         Course tcss101 = courseMap.get("TCSS 101");
@@ -360,7 +360,7 @@ class MainTest {
                 "TCSS 103 should point to the same TCSS 101 instance stored in the map.");
 
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> Main.validGraphStructure(courseMap, csv.toString()));
+                () -> Main.validateGraphStructure(courseMap, csv.toString()));
         assertEquals("Data is not a DAG.", exception.getMessage());
     }
 
@@ -374,7 +374,7 @@ class MainTest {
     void testLoadCoursesDuplicateRows(@TempDir Path theTempDir) throws Exception {
         Path csv = writeCsv(theTempDir, "Title\nTCSS 101,TCSS 201\nTCSS 101,TCSS 201\n");
 
-        Map<String, Course> courseMap = Main.loadCourses(csv.toString());
+        Map<String, Course> courseMap = Main.loadCourses(csv.toString()).courses();
 
         assertEquals(2, courseMap.size());
         assertEquals(1, courseMap.get("TCSS 101").getNextCourses().size());
